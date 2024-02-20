@@ -32,6 +32,7 @@ def permute(matrix, n):
 
 def gauss_seidel(matrix, n, max_iterations, eps):
     x = [matrix[i][n] / matrix[i][i] for i in range(n)]
+    d = []
     iterations = 0
     while iterations != max_iterations:
         iterations += 1
@@ -40,10 +41,11 @@ def gauss_seidel(matrix, n, max_iterations, eps):
             s1 = sum(matrix[i][j] * new_x[j] for j in range(i))
             s2 = sum(matrix[i][j] * x[j] for j in range(i + 1, n))
             new_x[i] = (matrix[i][n] - s1 - s2) / matrix[i][i]
-        if max([abs(x[i] - new_x[i]) for i in range(n)]) < eps:
-            return iterations, new_x
+        d = [abs(x[i] - new_x[i]) for i in range(n)]
+        if max(d) < eps:
+            return iterations, new_x, d
         x = new_x
-    return max_iterations + 1, x
+    return max_iterations + 1, x, d
 
 
 def get_stdin_input():
@@ -158,7 +160,7 @@ def get_file_input(filename):
 
 
 exp, n, max_iter, matrix = 1, 1, 1, []
-fileIn = input("Do you wanna set input via file? (y for yes): ")
+fileIn = input("Do you want to use file input? (y means yes): ")
 if fileIn == "y":
     fileName = input("Please enter filename: ")
     exp, n, max_iter, matrix = get_file_input(fileName)
@@ -173,13 +175,17 @@ if not ok:
 print("Diagonally dominant matrix:")
 for i in range(n):
     print(matrix[i])
-iterations, ans = gauss_seidel(matrix, n, max_iter, 10**-exp)
+iterations, ans, d = gauss_seidel(matrix, n, max_iter, 10**-exp)
 if iterations > 20:
     print("Cannot find answer with this accuracy and max iterations")
+    print("Error vector:")
+    print(d)
     print("Current answer:")
     print(ans)
     exit(1)
 print("iterations:", iterations)
+print("Error vector:")
+print(d)
 print("answer:")
 print(ans)
 
