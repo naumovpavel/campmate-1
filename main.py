@@ -13,11 +13,27 @@ def is_diagonally_dominant(matrix, n):
 
 
 def permute(matrix, n):
+    newmatrix = matrix.copy()
+    used = [False for i in range(n)]
+    for i in range(n):
+        for j in range(n):
+            if used[j]:
+                continue
+            sum = 2 * abs(matrix[j][i])
+            for k in range(n):
+                sum -= abs(matrix[j][k])
+            if sum >= 0:
+                newmatrix[i] = matrix[j]
+                used[j] = True
+                break
+    if is_diagonally_dominant(newmatrix, n):
+        return True, newmatrix
+    print("cannot make diagonally dominant matrix with fast algorithm, try with all permutations")
     for p in permutations(matrix):
         newmatrix = deepcopy(p)
         if is_diagonally_dominant(newmatrix, n):
             return True, newmatrix
-
+    print("cannot make diagonally dominant matrix with mega algorithm, try with very slow algorithm")
     id = [i for i in range(n)]
     for p in permutations(id):
         a = matrix.copy()
@@ -26,7 +42,6 @@ def permute(matrix, n):
                 a[i][p[j]], a[i][j] = a[i][j], a[i][p[j]]
         if is_diagonally_dominant(a, n):
             return True, a
-
     return False, None
 
 
