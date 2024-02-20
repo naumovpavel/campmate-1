@@ -3,37 +3,39 @@ from copy import deepcopy
 
 
 def is_diagonally_dominant(matrix, n):
+    was = False
     for i in range(n):
-        sum = 2 * abs(matrix[i][i])
+        sum = 0
         for j in range(n):
+            if j == i:
+                continue
             sum -= abs(matrix[i][j])
-        if sum <= 0:
+        if sum > matrix[i][i]:
             return False
-    return True
+        if sum < matrix[i][i]:
+            was = True
+    return was
+
+
+def permute_fast(matrix, n, start):
+    if n - 1 == start:
+        if is_diagonally_dominant(matrix, n):
+            return True
+        return False
+    for j in range(start, n):
+        sumr = 2 * abs(matrix[j][start])
+        for k in range(n):
+            sumr -= abs(matrix[j][k])
+        if sumr >= 0:
+            matrix[start], matrix[j] = matrix[j], matrix[start]
+            ok = permute_fast(matrix, n, start + 1)
+            if ok:
+                return True
+            matrix[j], matrix[start] = matrix[start], matrix[j]
+    return False
 
 
 def permute(matrix, n):
-    newmatrix = matrix.copy()
-    used = [False for i in range(n)]
-    for i in range(n):
-        for j in range(n):
-            if used[j]:
-                continue
-            sum = 2 * abs(matrix[j][i])
-            for k in range(n):
-                sum -= abs(matrix[j][k])
-            if sum >= 0:
-                newmatrix[i] = matrix[j]
-                used[j] = True
-                break
-    if is_diagonally_dominant(newmatrix, n):
-        return True, newmatrix
-    print("cannot make diagonally dominant matrix with fast algorithm, try with all permutations")
-    for p in permutations(matrix):
-        newmatrix = deepcopy(p)
-        if is_diagonally_dominant(newmatrix, n):
-            return True, newmatrix
-    print("cannot make diagonally dominant matrix with mega algorithm, try with very slow algorithm")
     id = [i for i in range(n)]
     for p in permutations(id):
         a = matrix.copy()
@@ -110,7 +112,7 @@ def get_stdin_input():
     print("Please enter extended matrix(1 row in line):")
     for i in range(n):
         while True:
-            row = (list(map(lambda x: x.lstrip().rstrip(), input().split(","))))
+            row = (list(map(lambda x: x.lstrip().rstrip(), input().replace(",", ".").split(" "))))
             if len(row) != n + 1:
                 print("Expected %d elements in row, got %d, please try again" % (n + 1, len(row)))
                 continue
@@ -159,7 +161,7 @@ def get_file_input(filename):
 
     matrix = []
     for i in range(n):
-        row = (list(map(lambda x: x.lstrip().rstrip(), file.readline().split(","))))
+        row = (list(map(lambda x: x.lstrip().rstrip(), file.readline().replace(",", ".").split(" "))))
         if len(row) != n + 1:
             print("Expected %d elements in row, got %d, in line %d" % (n + 1, len(row), i))
             exit(1)
@@ -181,11 +183,16 @@ if fileIn == "y":
     exp, n, max_iter, matrix = get_file_input(fileName)
 else:
     exp, n, max_iter, matrix = get_stdin_input()
-
-ok, matrix = permute(matrix, n)
+matrix_copy = matrix.copy()
+ok = permute_fast(matrix, n, 0)
 if not ok:
-    print("Matrix cannot be diagonally dominant")
-    exit(1)
+    print("cannot make diagonally dominant matrix with fast algorithm, try with all rows permutations?(y for yes)")
+    y = input()
+    if y == "y":
+        ok, ans = permute(matrix_copy, n)
+    if not ok:
+        print("Matrix cannot be diagonally dominant")
+        exit(1)
 
 print("Diagonally dominant matrix:")
 for i in range(n):
